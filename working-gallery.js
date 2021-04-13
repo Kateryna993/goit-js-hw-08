@@ -26,33 +26,29 @@
   </a>
 </li>  */
 
-import galleryItems from './gallery-items.js';
+import galleryImages from './gallery-items.js';
 
 // console.log(ArrayItems);
 
 const refs = {
   galleryContainer: document.querySelector('.js-gallery'),
-  
+
   lightboxModal: document.querySelector('.js-lightbox'),
   lightboxImg: document.querySelector('.lightbox__image'),
   lightboxOverlay: document.querySelector('.lightbox__overlay'),
   lightboxCloseBtn: document.querySelector('[data-action="close-lightbox"]'),
 };
 
-// console.log(refs.lightboxCloseBtn);
-
-// console.log(createGalleryMarkup(ArrayItems));
-
 // Создание и добавление разметки
 
-const galleryMarkup = createGalleryMarkup(galleryItems);
-
+const galleryMarkup = createGalleryMarkup(galleryImages);
 
 refs.galleryContainer.insertAdjacentHTML('beforeend', galleryMarkup);
 
-function createGalleryMarkup(galleryItems) {
-  return galleryItems.map(({ preview, original, description }) => {
-    return `
+function createGalleryMarkup(galleryImages) {
+  return galleryImages
+    .map(({ preview, original, description }) => {
+      return `
     <li class="gallery__item">
         <a class="gallery__link" href="${original}">
             <img
@@ -63,67 +59,95 @@ function createGalleryMarkup(galleryItems) {
             />
         </a>
     </li>`;
-  })
-  .join('')
-};
-//   return markup;
-  
-//   console.log(galleryItems[0]); 
-//     // первая карточка, длинна массива markup.length
-// }
+    })
+    .join('');
+}
+
 // Делегирование и открытие модалки
 
 refs.galleryContainer.addEventListener('click', onModalOpen);
 
 function onModalOpen(event) {
+  event.preventDefault();
 
-    event.preventDefault();
+  // console.log(event.target.alt)
 
-    // console.log(event.target.alt)
-
-   if (event.target.classList.contains('gallery__image')) {
+  if (event.target.classList.contains('gallery__image')) {
     refs.lightboxModal.classList.toggle('is-open');
     refs.lightboxImg.src = event.target.dataset.source;
     refs.lightboxImg.alt = event.target.alt;
-   } 
+  }
 
-    console.log(refs.lightboxImg)
+  console.log(refs.lightboxImg);
 
-    window.addEventListener('keydown', onEscKeyPress)
-
+  window.addEventListener('keydown', onKeysSwitchAndClose);
 }
 
-refs.lightboxModal.addEventListener('click', onModalClose);
+refs.lightboxModal.addEventListener('click', onClickModalClose);
 
-// 
+//
 
-function onModalClose(event) {
+function onClickModalClose(event) {
+  const btnEl = event.target === refs.lightboxCloseBtn;
 
-    const btnEl = event.target === refs.lightboxCloseBtn;
+  const overlayEl = event.target === refs.lightboxOverlay;
 
-    const overlayEl = event.target === refs.lightboxOverlay;
+  if (btnEl || overlayEl) {
+    refs.lightboxModal.classList.toggle('is-open');
+    refs.lightboxImg.src = "";
+  }
 
+  // console.log(event.target);
 
-    if (btnEl || overlayEl) {
-        refs.lightboxModal.classList.toggle('is-open');
-        refs.lightboxImg.src = "";
-    }
-
-    console.log(event.target);
-
+  // console.log(refs.lightboxImg)
 }
 
-// window.addEventListener('keydown', onEscKeyPress)
+// Реализация перелистывания галереи и закрытия с помощью ESC
+let currentIndex = 0;
 
-function onEscKeyPress(event) { 
-    
-    console.log(event)
-    if (event.code === 'Escape') {
-        refs.lightboxModal.classList.toggle('is-open');
-        refs.lightboxImg.src = "";
-    }
+function onKeysSwitchAndClose(event) {
+  const key = event.code;
 
-    window.removeEventListener('keydown', onEscKeyPress);
-
+  console.log(key);
+  switch (key) {
+    case 'ArrowRight':
+      onArrowRight();
+      break;
+    case 'ArrowLeft':
+      onArrowLeft();
+      break;
+    case 'Escape':
+      onEscCloseModal();
+      break;
+  }
 }
 
+function onArrowRight() {
+  if (currentIndex !== galleryImages.length - 1) {
+    currentIndex += 1;
+  } else {
+    currentIndex = 0;
+  }
+
+  refs.lightboxImg.src = galleryImages[currentIndex].original;
+  refs.lightboxImg.alt = galleryImages[currentIndex].description;
+}
+
+function onArrowLeft() {
+  if (currentIndex <= 0) {
+    currentIndex = galleryImages.length - 1;
+  } else {
+    currentIndex -= 1;
+  }
+
+  refs.lightboxImg.src = galleryImages[currentIndex].original;
+  refs.lightboxImg.alt = galleryImages[currentIndex].description;
+}
+
+function onEscCloseModal() {
+  refs.lightboxModal.classList.toggle('is-open');
+  refs.lightboxImg.src = "";
+
+  window.removeEventListener('keydown', onKeysSwitchAndClose);
+  // console.log(refs.lightboxImg)
+}
