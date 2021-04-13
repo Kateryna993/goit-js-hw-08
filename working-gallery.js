@@ -85,7 +85,7 @@ function onModalOpen(event) {
 
 refs.lightboxModal.addEventListener('click', onClickModalClose);
 
-//
+// Закрытие модалки по клику на button
 
 function onClickModalClose(event) {
   const btnEl = event.target === refs.lightboxCloseBtn;
